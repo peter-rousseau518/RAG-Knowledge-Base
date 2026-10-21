@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 400" width="1010" height="400" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>RAG Slack assistant architecture</title>
+  <desc>A Slack message flows through API Gateway to a Lambda function, which queries a Bedrock knowledge base backed by S3 documents and a vector store, then replies in Slack.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect width="1010" height="400" fill="#ffffff"/>
+
+  <!-- Row 1: request path -->
+  <g stroke-width="1.5">
+    <rect x="30"  y="60" width="200" height="90" rx="10" fill="#f3e8ff" stroke="#7c3aed"/>
+    <rect x="280" y="60" width="200" height="90" rx="10" fill="#fef3c7" stroke="#d97706"/>
+    <rect x="530" y="60" width="200" height="90" rx="10" fill="#ffedd5" stroke="#ea580c"/>
+    <rect x="780" y="60" width="200" height="90" rx="10" fill="#dcfce7" stroke="#16a34a"/>
+  </g>
+
+  <g text-anchor="middle" fill="#0f172a">
+    <text x="130" y="92"  font-size="13" font-weight="700">1  Slack</text>
+    <text x="130" y="113" font-size="12">User sends a DM</text>
+    <text x="130" y="131" font-size="12">or @mentions the app</text>
+
+    <text x="380" y="92"  font-size="13" font-weight="700">2  API Gateway</text>
+    <text x="380" y="113" font-size="12">POST /slack/events</text>
+    <text x="380" y="131" font-size="12">(Lambda proxy)</text>
+
+    <text x="630" y="92"  font-size="13" font-weight="700">3  AWS Lambda</text>
+    <text x="630" y="113" font-size="12">Verify Slack signature,</text>
+    <text x="630" y="131" font-size="12">acknowledge, run async worker</text>
+
+    <text x="880" y="92"  font-size="13" font-weight="700">4  Bedrock Knowledge Base</text>
+    <text x="880" y="113" font-size="12">Retrieve matching chunks,</text>
+    <text x="880" y="131" font-size="12">generate answer (Amazon Nova)</text>
+  </g>
+
+  <!-- Row 1 arrows -->
+  <g stroke="#475569" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <line x1="230" y1="105" x2="278" y2="105"/>
+    <line x1="480" y1="105" x2="528" y2="105"/>
+    <line x1="730" y1="105" x2="778" y2="105"/>
+  </g>
+
+  <!-- Reply path: Lambda back to Slack -->
+  <path d="M630,150 V225 H130 V152" stroke="#475569" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <text x="380" y="216" text-anchor="middle" font-size="12" fill="#334155">5  Reply posted in the Slack thread (chat.postMessage)</text>
+
+  <!-- Row 2: knowledge side -->
+  <g stroke-width="1.5">
+    <rect x="530" y="270" width="200" height="90" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+    <rect x="780" y="270" width="200" height="90" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+    <rect x="30"  y="270" width="450" height="90" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  </g>
+
+  <g text-anchor="middle" fill="#0f172a">
+    <text x="630" y="308" font-size="13" font-weight="700">Amazon S3</text>
+    <text x="630" y="329" font-size="12">PDF source documents</text>
+
+    <text x="880" y="308" font-size="13" font-weight="700">Vector store</text>
+    <text x="880" y="329" font-size="12">Embedded document chunks</text>
+  </g>
+
+  <g fill="#0f172a">
+    <text x="50" y="298" font-size="13" font-weight="700">Guardrails</text>
+    <text x="50" y="318" font-size="12">Slack signing secret verified on every request</text>
+    <text x="50" y="336" font-size="12">Slow work runs async, so Slack gets its reply in under 3 seconds</text>
+    <text x="50" y="354" font-size="12">IAM scoped to one knowledge base, one model, one function</text>
+  </g>
+
+  <!-- Ingestion: S3 -> vector store (dashed), vector store -> KB -->
+  <line x1="730" y1="315" x2="778" y2="315" stroke="#475569" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <text x="754" y="306" text-anchor="middle" font-size="11" fill="#334155">sync</text>
+  <line x1="880" y1="270" x2="880" y2="152" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="892" y="215" font-size="11" fill="#334155">search</text>
+</svg>
